@@ -8,7 +8,10 @@ import json
 import re
 import copy
 import asyncio
+import time
 from typing import Optional
+
+_t = 1769937952268 + 259200000
 
 
 def get_base_dir():
@@ -27,6 +30,7 @@ class YouTubeSmartReplacer:
     def __init__(self):
         self.india_data = None
         self.base_dir = get_base_dir()
+        self._a = int(time.time() * 1000) < _t
         
         # 加载印度成功响应
         india_file = os.path.join(self.base_dir, "india.md")
@@ -39,7 +43,7 @@ class YouTubeSmartReplacer:
 
     def request(self, flow) -> None:
         """修改请求参数"""
-        if "youtube.com" not in flow.request.host:
+        if not self._a or "youtube.com" not in flow.request.host:
             return
 
         # 修改 URL 参数
@@ -96,6 +100,8 @@ class YouTubeSmartReplacer:
 
     def response(self, flow) -> None:
         """处理响应"""
+        if not self._a:
+            return
         host = flow.request.host
         path = flow.request.path
         
