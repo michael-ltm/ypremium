@@ -1,0 +1,75 @@
+name: Build Windows x64 EXE
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11 (x64)
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        architecture: 'x64'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller mitmproxy
+    
+    - name: Build EXE
+      run: |
+        pyinstaller --onefile `
+          --name "YouTubeSmartReplace" `
+          --console `
+          --clean `
+          --noconfirm `
+          --hidden-import=mitmproxy `
+          --hidden-import=mitmproxy.tools `
+          --hidden-import=mitmproxy.tools.dump `
+          --hidden-import=mitmproxy.options `
+          --hidden-import=mitmproxy.net `
+          --hidden-import=mitmproxy.proxy `
+          --hidden-import=mitmproxy.addons `
+          --hidden-import=mitmproxy.http `
+          --hidden-import=cryptography `
+          --hidden-import=OpenSSL `
+          --collect-all mitmproxy `
+          youtube_standalone.py
+    
+    - name: Prepare release files
+      run: |
+        mkdir release
+        copy dist\YouTubeSmartReplace.exe release\
+        copy india.md release\
+        copy README_使用说明.md release\
+      shell: cmd
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: YouTubeSmartReplace-Windows-x64
+        path: release/
+        retention-days: 30
+    
+    - name: Create Release (on tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release/YouTubeSmartReplace.exe
+          release/india.md
+          release/README_使用说明.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
