@@ -154,12 +154,23 @@ class YouTubeSmartReplace:
                 
             original_content = flow.response.content.decode('utf-8')
             
-            # 检测是否是错误响应
-            if "couldn't verify" not in original_content.lower() and "could not verify" not in original_content.lower():
+            # 检测是否需要替换（支持多语言错误页面）
+            error_indicators = [
+                "couldn't verify", "could not verify",
+                "no hemos podido verificar",
+                "无法验证", "無法驗證",
+                "確認できません",
+                "Centro de Ayuda", "Help Center",
+            ]
+            
+            has_error = any(indicator.lower() in original_content.lower() for indicator in error_indicators)
+            has_purchase_options = "lpOfferCard" in original_content or "premiumPurchaseButton" in original_content
+            
+            if not has_error and has_purchase_options:
                 ctx.log.info("[跳过] 响应正常，无需替换")
                 return
             
-            ctx.log.info("[检测到] 'couldn't verify' 错误，开始智能替换...")
+            ctx.log.info(f"[检测到] 需要替换 (错误页面={has_error}, 有购买选项={has_purchase_options})")
             
             # 解析原始响应
             original_data = json.loads(original_content)
