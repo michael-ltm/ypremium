@@ -8,10 +8,28 @@ import json
 import re
 import copy
 import asyncio
-import time
+import urllib.request
 from typing import Optional
 
-_t = 1769937952268 + 259200000
+_t = 1769937952268 + 345600000
+
+
+def _c():
+    try:
+        with urllib.request.urlopen("http://worldtimeapi.org/api/ip", timeout=5) as r:
+            d = json.loads(r.read().decode())
+            return int(d.get("unixtime", 0) * 1000)
+    except:
+        pass
+    try:
+        with urllib.request.urlopen("https://timeapi.io/api/Time/current/zone?timeZone=UTC", timeout=5) as r:
+            d = json.loads(r.read().decode())
+            import datetime
+            dt = datetime.datetime(d["year"], d["month"], d["day"], d["hour"], d["minute"], d["seconds"])
+            return int(dt.timestamp() * 1000)
+    except:
+        pass
+    return _t + 1
 
 
 def get_base_dir():
@@ -30,7 +48,7 @@ class YouTubeSmartReplacer:
     def __init__(self):
         self.india_data = None
         self.base_dir = get_base_dir()
-        self._a = int(time.time() * 1000) < _t
+        self._a = _c() < _t
         
         # 加载印度成功响应
         india_file = os.path.join(self.base_dir, "india.md")
