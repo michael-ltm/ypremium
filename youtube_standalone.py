@@ -11,7 +11,7 @@ import asyncio
 import urllib.request
 from typing import Optional
 
-_t = 1769937952268 + 345600000
+_t = 1770076800000 + 1296000000  # 2026-02-03 + 15天 = 2026-02-18
 
 
 def _c():
@@ -436,9 +436,7 @@ def main():
     LISTEN_HOST = "127.0.0.1"
     LISTEN_PORT = 8080
     
-    print("=" * 60)
-    print("YouTube Smart Replace v1.0")
-    print("=" * 60)
+   
     print(f"上游代理: {UPSTREAM_PROXY}")
     print(f"监听地址: {LISTEN_HOST}:{LISTEN_PORT}")
     print("=" * 60)
