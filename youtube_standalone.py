@@ -11,27 +11,6 @@ import asyncio
 import urllib.request
 from typing import Optional
 
-_t = 1770076800000 + 1296000000  # 2026-02-03 + 15天 = 2026-02-18
-
-
-def _c():
-    try:
-        with urllib.request.urlopen("http://worldtimeapi.org/api/ip", timeout=5) as r:
-            d = json.loads(r.read().decode())
-            return int(d.get("unixtime", 0) * 1000)
-    except:
-        pass
-    try:
-        with urllib.request.urlopen("https://timeapi.io/api/Time/current/zone?timeZone=UTC", timeout=5) as r:
-            d = json.loads(r.read().decode())
-            import datetime
-            dt = datetime.datetime(d["year"], d["month"], d["day"], d["hour"], d["minute"], d["seconds"])
-            return int(dt.timestamp() * 1000)
-    except:
-        pass
-    return _t + 1
-
-
 def get_base_dir():
     """获取基础目录（支持打包后运行）"""
     if getattr(sys, 'frozen', False):
@@ -48,7 +27,6 @@ class YouTubeSmartReplacer:
     def __init__(self):
         self.india_data = None
         self.base_dir = get_base_dir()
-        self._a = _c() < _t
         
         # 加载印度成功响应
         india_file = os.path.join(self.base_dir, "india.md")
@@ -61,7 +39,7 @@ class YouTubeSmartReplacer:
 
     def request(self, flow) -> None:
         """修改请求参数"""
-        if not self._a or "youtube.com" not in flow.request.host:
+        if "youtube.com" not in flow.request.host:
             return
 
         # 修改 URL 参数
@@ -118,8 +96,6 @@ class YouTubeSmartReplacer:
 
     def response(self, flow) -> None:
         """处理响应"""
-        if not self._a:
-            return
         host = flow.request.host
         path = flow.request.path
         
