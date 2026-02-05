@@ -8,7 +8,6 @@ import json
 import re
 import copy
 import asyncio
-import urllib.request
 from typing import Optional
 
 def get_base_dir():
